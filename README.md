@@ -102,11 +102,17 @@ For developers who prefer local toolchains, optional Hardhat/Foundry scaffolding
 
 ---
 
+
 ### Repo Structure
 kipu-bank/
 ├─ contracts/
-│ └─ KipuBank.sol
-└─ README.md
+│  └─ KipuBank.sol
+├─ tests/
+│  └─ KipuBank_test.sol          # Remix Solidity test
+├─ docs/
+│  └─ index.html                 # Hosted UI for GitHub Pages
+├─ README.md
+└─ LICENSE                       # (MIT recommended)
 
 ---
 
