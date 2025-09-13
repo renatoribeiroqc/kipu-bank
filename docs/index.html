@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>KipuBank • Renato Ribeiro DEMO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- ethers v6 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.12.1/dist/ethers.min.js"></script>
+  <style>
+    body { background: #f7f9fc; }
+    .app { max-width: 520px; margin: 0 auto; padding: 16px; }
+    .card { border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .muted { color: #667085; }
+    .fullw { width: 100%; }
+    .step { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+    .disabled-card { opacity: .55; filter: grayscale(.1); pointer-events: none; }
+    .ok { color: #198754; } .bad { color: #dc3545; } .warn { color:#b8860b; }
+    .tiny { font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header / friendly intro -->
+    <div class="mb-3">
+      <h1 class="h5 mb-1">KipuBank – Demo</h1>
+      <div id="network" class="small text-secondary">Not connected</div>
+      <div class="tiny muted mt-1">Follow the steps below. Each step unlocks the next one.</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="cardStep1" class="card mb-3">
+      <div class="card-body">
+        <div class="step">Step 1 — Connect Your Wallet</div>
+        <p class="small text-secondary mb-3">
+          Boomers & kiddos: click the big button. Approve in MetaMask. That’s it.
+        </p>
+        <button id="btnConnect" class="btn btn-primary fullw">🔌 Connect Wallet</button>
+        <div id="statusStep1" class="tiny text-secondary mt-2">Waiting to connect…</div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="cardStep2" class="card mb-3 disabled-card">
+      <div class="card-body">
+        <div class="step">Step 2 — Tell me which Contract</div>
+        <p class="small text-secondary mb-3">
+          Paste the contract address your teacher (or you) deployed. Then press Attach.
+        </p>
+        <div class="mb-2">
+          <label class="form-label small">Contract Address</label>
+          <input id="contractAddress" class="form-control mono" type="text" placeholder="0xYourDeployedAddress" disabled />
+        </div>
+        <button id="btnAttach" class="btn btn-outline-secondary fullw" disabled>📎 Attach</button>
+
+        <div class="row g-2 mt-3">
+          <div class="col-4">
+            <div class="small muted">Bank Cap</div>
+            <div id="bankCap" class="mono">—</div>
+          </div>
+          <div class="col-4">
+            <div class="small muted">Withdraw / tx</div>
+            <div id="withdrawLimit" class="mono">—</div>
+          </div>
+          <div class="col-4">
+            <div class="small muted">Total Vault</div>
+            <div id="totalVault" class="mono">—</div>
+          </div>
+        </div>
+        <div id="statusStep2" class="tiny text-secondary mt-2">Locked until wallet is connected.</div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="cardStep3" class="card mb-3 disabled-card">
+      <div class="card-body">
+        <div class="step">Step 3 — Use Your Vault</div>
+        <p class="small text-secondary mb-3">
+          <b>Deposit</b> puts ETH into your vault. <b>Withdraw</b> takes ETH out (up to the limit).
+        </p>
+
+        <div class="mb-2">
+          <label class="form-label small">My Address</label>
+          <input id="me" class="form-control mono" type="text" readonly disabled />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Balance (in contract)</label>
+          <input id="myBalance" class="form-control mono" type="text" readonly disabled />
+        </div>
+
+        <div class="d-flex gap-2 mb-2">
+          <button id="btnRefresh" class="btn btn-outline-secondary flex-fill" disabled>🔄 Refresh</button>
+        </div>
+
+        <div class="row g-2 align-items-end">
+          <div class="col-7">
+            <label class="form-label small">Deposit (ETH)</label>
+            <input id="inpDeposit" type="number" inputmode="decimal" min="0" step="0.0001" placeholder="0.10" class="form-control" disabled />
+          </div>
+          <div class="col-5">
+            <button id="btnDeposit" class="btn btn-success fullw" disabled>⬆️ Deposit</button>
+          </div>
+          <div class="col-7">
+            <label id="withdrawLabel" class="form-label small">Withdraw (ETH)</label>
+            <input id="inpWithdraw" type="number" inputmode="decimal" min="0" step="0.0001" placeholder="0.05" class="form-control" disabled />
+          </div>
+          <div class="col-5">
+            <button id="btnWithdraw" class="btn btn-warning fullw" disabled>⬇️ Withdraw</button>
+          </div>
+        </div>
+
+        <div id="counters" class="small text-secondary mt-2">Deposits: — · Withdrawals: —</div>
+        <div id="statusStep3" class="tiny text-secondary mt-2">Locked until a contract is attached.</div>
+      </div>
+    </div>
+
+    <!-- STEP 4 (Logs) -->
+    <div id="cardStep4" class="card disabled-card">
+      <div class="card-body">
+        <div class="step">Step 4 — See What Happened</div>
+        <p class="small text-secondary mb-2">Every deposit/withdraw shows here.</p>
+        <div id="logs" class="small mono">—</div>
+      </div>
+    </div>
+
+    <p class="small text-center text-secondary mt-3 mb-0">
+      Tip: use Sepolia or Holesky. This is a demo UI — NOT FOR PRODUCTION!!.
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      // ===== Helpers =====
+      const $ = (id) => document.getElementById(id);
+      const fmt = (wei) => ethers.formatEther(wei);
+      const toWei = (eth) => ethers.parseEther(String(eth));
+
+      function setCardEnabled(cardId, enabled) {
+        const card = $(cardId);
+        card.classList.toggle('disabled-card', !enabled);
+        // Enable/disable all form controls inside
+        card.querySelectorAll('input,button,select,textarea').forEach(el => {
+          // Step 1 button should remain active when enabling others
+          if (el.id === 'btnConnect') return;
+          el.disabled = !enabled;
+        });
+      }
+
+      function log(line, ok = true) {
+        const el = $("logs");
+        el.textContent = (el.textContent === "—" ? "" : el.textContent + "\n") + (ok ? "✅ " : "🛑 ") + line;
+      }
+
+      function setMsg(id, msg, cls) {
+        const el = $(id);
+        el.textContent = msg || "";
+        el.className = "tiny " + (cls || "text-secondary");
+      }
+
+      // ===== Contract ABI =====
+      const abi = [
+        "function VERSION() view returns (string)",
+        "function bankCap() view returns (uint256)",
+        "function withdrawLimit() view returns (uint256)",
+        "function totalVaultBalance() view returns (uint256)",
+        "function balanceOf(address) view returns (uint256)",
+        "function depositCount() view returns (uint256)",
+        "function withdrawalCount() view returns (uint256)",
+        "function deposit() payable",
+        "function withdraw(uint256 amount)",
+        "event Deposited(address indexed account, uint256 amount, uint256 newUserBalance, uint256 newTotalVaultBalance)",
+        "event Withdrawn(address indexed account, uint256 amount, uint256 newUserBalance, uint256 newTotalVaultBalance)"
+      ];
+
+      // ===== State =====
+      let provider, signer, me, contract;
+      let currentWithdrawLimitEth = null;
+
+      // Initial lock: only Step 1 enabled
+      setCardEnabled("cardStep1", true);
+      setCardEnabled("cardStep2", false);
+      setCardEnabled("cardStep3", false);
+      setCardEnabled("cardStep4", false);
+
+      // ===== Wallet Connect (Step 1) =====
+      $("btnConnect").onclick = async () => {
+        try {
+          if (!window.ethereum) { setMsg("statusStep1", "MetaMask not found. Install MetaMask browser extension.", "text-danger"); return; }
+          provider = new ethers.BrowserProvider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+          signer = await provider.getSigner();
+          me = await signer.getAddress();
+
+          const net = await provider.getNetwork();
+          $("network").textContent = `✅ Connected: ${net.name ?? "unknown"} (chainId ${net.chainId})`;
+          setMsg("statusStep1", "Wallet connected. Step 2 unlocked.", "text-success");
+          setCardEnabled("cardStep2", true);
+          // Prefill my address in Step 3 even if locked
+          $("me").value = me;
+        } catch (e) {
+          console.error(e);
+          setMsg("statusStep1", e?.message || "Failed to connect.", "text-danger");
+        }
+      };
+
+      // ===== Attach Contract (Step 2) =====
+      $("btnAttach").onclick = async () => {
+        try {
+          if (!signer) { setMsg("statusStep2", "Connect wallet first (Step 1).", "text-danger"); return; }
+          const addr = $("contractAddress").value.trim();
+          if (!ethers.isAddress(addr)) { setMsg("statusStep2", "Invalid contract address. Paste a valid 0x… address.", "text-danger"); return; }
+
+          contract = new ethers.Contract(addr, abi, signer);
+          setMsg("statusStep2", "Contract attached. Reading info…", "text-warning");
+
+          // Read basic constants + totals
+          const [cap, limit, total, dep, wdr, version] = await Promise.all([
+            contract.bankCap(), contract.withdrawLimit(), contract.totalVaultBalance(),
+            contract.depositCount(), contract.withdrawalCount(), contract.VERSION()
+          ]);
+          $("bankCap").textContent = fmt(cap);
+          $("withdrawLimit").textContent = fmt(limit);
+          $("totalVault").textContent = fmt(total);
+          $("counters").textContent = `Deposits: ${dep} · Withdrawals: ${wdr}`;
+          currentWithdrawLimitEth = Number(fmt(limit));
+          $("withdrawLabel").textContent = `Withdraw (ETH) — up to ${currentWithdrawLimitEth} per tx`;
+
+          setMsg("statusStep2", `Attached to ${addr} (v${version}). Step 3 unlocked.`, "text-success");
+
+          // Unlock Step 3 & 4
+          setCardEnabled("cardStep3", true);
+          setCardEnabled("cardStep4", true);
+
+          // Listen to my events only
+          contract.on("Deposited", (account, amount, newUserBalance, newTotal) => {
+            if (!me || account.toLowerCase() !== me.toLowerCase()) return;
+            log(`Deposit +${fmt(amount)} | my=${fmt(newUserBalance)} | total=${fmt(newTotal)}`);
+            refreshReads();
+          });
+          contract.on("Withdrawn", (account, amount, newUserBalance, newTotal) => {
+            if (!me || account.toLowerCase() !== me.toLowerCase()) return;
+            log(`Withdraw -${fmt(amount)} | my=${fmt(newUserBalance)} | total=${fmt(newTotal)}`);
+            refreshReads();
+          });
+
+          // Initial read for my balance
+          await refreshReads();
+
+        } catch (e) {
+          console.error(e);
+          setMsg("statusStep2", e?.reason || e?.message || "Attach failed.", "text-danger");
+        }
+      };
+
+      // Enable inputs in Step 2 only after wallet connected
+      const observer = new MutationObserver(() => {
+        const step2Enabled = !$("cardStep2").classList.contains("disabled-card");
+        $("contractAddress").disabled = !step2Enabled;
+        $("btnAttach").disabled = !step2Enabled;
+      });
+      observer.observe($("cardStep2"), { attributes: true, attributeFilter: ["class"] });
+
+      // Enable inputs in Step 3 only after contract attached
+      const observer3 = new MutationObserver(() => {
+        const enabled = !$("cardStep3").classList.contains("disabled-card");
+        ["me","myBalance","btnRefresh","inpDeposit","btnDeposit","inpWithdraw","btnWithdraw"]
+          .forEach(id => { $(id).disabled = !enabled; });
+      });
+      observer3.observe($("cardStep3"), { attributes: true, attributeFilter: ["class"] });
+
+      // ===== Reads / Actions (Step 3) =====
+      async function refreshReads() {
+        if (!contract || !me) return;
+        const [total, dep, wdr, myBal] = await Promise.all([
+          contract.totalVaultBalance(), contract.depositCount(), contract.withdrawalCount(), contract.balanceOf(me)
+        ]);
+        $("totalVault").textContent = fmt(total);
+        $("myBalance").value = fmt(myBal);
+        $("counters").textContent = `Deposits: ${dep} · Withdrawals: ${wdr}`;
+      }
+
+      $("btnRefresh").onclick = refreshReads;
+
+      $("btnDeposit").onclick = async () => {
+        try {
+          if (!contract) { setMsg("statusStep3", "Attach contract first (Step 2).", "text-danger"); return; }
+          const eth = $("inpDeposit").value;
+          if (!eth || Number(eth) <= 0) { setMsg("statusStep3", "Enter a deposit > 0.", "text-danger"); return; }
+          setMsg("statusStep3", "Sending deposit…", "text-warning");
+          const tx = await contract.deposit({ value: toWei(eth) });
+          await tx.wait();
+          setMsg("statusStep3", "Deposit confirmed ✅", "text-success");
+          log(`Deposited ${eth} ETH`);
+        } catch (e) {
+          console.error(e);
+          setMsg("statusStep3", e?.reason || e?.message || "Deposit failed.", "text-danger");
+          log(`Deposit failed: ${e?.reason || e?.message}`, false);
+        }
+      };
+
+      $("btnWithdraw").onclick = async () => {
+        try {
+          if (!contract) { setMsg("statusStep3", "Attach contract first (Step 2).", "text-danger"); return; }
+          const ethStr = $("inpWithdraw").value;
+          const eth = Number(ethStr);
+          if (!ethStr || eth <= 0) { setMsg("statusStep3", "Enter a withdrawal > 0.", "text-danger"); return; }
+          if (currentWithdrawLimitEth !== null && eth > currentWithdrawLimitEth) {
+            setMsg("statusStep3", `Too much. Max per tx is ${currentWithdrawLimitEth} ETH.`, "text-danger");
+            return;
+          }
+          setMsg("statusStep3", "Withdrawing…", "text-warning");
+          const tx = await contract.withdraw(toWei(eth));
+          await tx.wait();
+          setMsg("statusStep3", "Withdrawal confirmed ✅", "text-success");
+          log(`Withdrew ${eth} ETH`);
+        } catch (e) {
+          console.error(e);
+          setMsg("statusStep3", e?.reason || e?.message || "Withdraw failed.", "text-danger");
+          log(`Withdraw failed: ${e?.reason || e?.message}`, false);
+        }
+      };
+
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
