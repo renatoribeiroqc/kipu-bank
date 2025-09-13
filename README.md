@@ -113,7 +113,7 @@ For developers who prefer local toolchains, optional Hardhat/Foundry scaffolding
 │  └─ index.html                 # Hosted UI for GitHub Pages
 ├─ README.md
 └─ LICENSE                       # (MIT recommended)
-
+```
 ---
 
 ### License
