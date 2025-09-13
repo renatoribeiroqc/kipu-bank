@@ -104,7 +104,7 @@ For developers who prefer local toolchains, optional Hardhat/Foundry scaffolding
 
 
 ### Repo Structure
-kipu-bank/
+```text
 ├─ contracts/
 │  └─ KipuBank.sol
 ├─ tests/
