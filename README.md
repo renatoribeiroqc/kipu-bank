@@ -85,6 +85,7 @@ For developers who prefer local toolchains, optional Hardhat/Foundry scaffolding
   - Enter amount in wei (e.g., `100000000000000000` for `0.1 ether`) → `withdraw`.
 - **balanceOf(address)**
   - Query any address to get its vault balance.
+- OR access **https://renatoribeiroqc.github.io/kipu-bank/** to use a demo client using this contract ABI and ether.js
 
 #### Expected Events
 
