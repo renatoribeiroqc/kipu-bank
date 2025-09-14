@@ -39,7 +39,7 @@ For developers who prefer local toolchains, optional Hardhat/Foundry scaffolding
 
 ### Contract Addresses (Testnet)
 
-- **Holesky / Sepolia**: _paste your deployed address here_
+- **Holesky / Sepolia**: [https://sepolia.etherscan.io/tx/0x739493954c9e3a9343aa94e1a98dedad60d3f6cc9ca5bb84cffdbf021ba8b9b4](https://sepolia.etherscan.io/tx/0x739493954c9e3a9343aa94e1a98dedad60d3f6cc9ca5bb84cffdbf021ba8b9b4)
 - Source code: Verified (Etherscan/Sourcify)
 
 ---
